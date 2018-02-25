@@ -26,6 +26,9 @@ def removePunctuation(text):
     return re.sub("[" + string.punctuation + "]", "", text)
 
 
+def intRound(x, base):
+    return int(base * round(float(x)/base))
+
 # following function credited to https://buhrmann.github.io/tfidf-analysis.html
 def top_tfidf_feats(row, features, top_n=25):
     ''' Get top n tfidf values in row and return them with their corresponding feature names.'''
