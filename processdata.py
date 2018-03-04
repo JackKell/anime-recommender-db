@@ -109,12 +109,15 @@ def main():
         animes.append(anime)
 
     indexes = [anime.animeId for anime in animes]
+    titles = [anime.title for anime in animes]
+
+    titleIdDF = DataFrame({"animeid": indexes, "title": titles})
 
     summaries = [processSummary(anime.summary) for anime in animes]
     maxFeatures = 60
     summaryVectorizer = TfidfVectorizer(norm="l2", max_features=maxFeatures, stop_words="english")
     x = summaryVectorizer.fit_transform(summaries)
-    summariesDF = DataFrame(x.toarray(), columns=summaryVectorizer.get_feature_names(), index=indexes)
+    summariesDF = DataFrame(x.toarray(), columns=summaryVectorizer.get_feature_names())
     # print("Top", maxFeatures, "most important summary words")
     # print(top_mean_feats(x, summaryVectorizer.get_feature_names(), top_n=maxFeatures))
 
@@ -122,26 +125,27 @@ def main():
     maxFeatures = 30
     themeVectorizer = TfidfVectorizer(norm="l2", max_features=maxFeatures, stop_words="english")
     x = themeVectorizer.fit_transform(themes)
-    themesDF = DataFrame(x.toarray(), columns=themeVectorizer.get_feature_names(), index=indexes)
+    themesDF = DataFrame(x.toarray(), columns=themeVectorizer.get_feature_names())
     # print("Top", maxFeatures, "most important themes")
     # print(top_mean_feats(x, themeVectorizer.get_feature_names(), top_n=maxFeatures))
 
     vintages = [processVintage(anime.vintage) for anime in animes]
     vintageVectorizer = CountVectorizer(stop_words="english", binary=True)
     x = vintageVectorizer.fit_transform(vintages)
-    vintagesDF = DataFrame(x.toarray(), columns=vintageVectorizer.get_feature_names(), index=indexes).drop(["noyear"], axis=1)
+    vintagesDF = DataFrame(x.toarray(), columns=vintageVectorizer.get_feature_names()).drop(["noyear"], axis=1)
 
     processedGenres = [processGenres(anime.genres) for anime in animes]
     genreVectorizer = CountVectorizer(stop_words="english", binary=True)
     x = genreVectorizer.fit_transform(processedGenres)
-    genresDF = DataFrame(x.toarray(), columns=genreVectorizer.get_feature_names(), index=indexes)
+    genresDF = DataFrame(x.toarray(), columns=genreVectorizer.get_feature_names())
 
-    databaseDF: DataFrame = pandas.concat([summariesDF, themesDF, genresDF, vintagesDF], axis=1)
-    # print(databaseDF)
-    print(list(databaseDF))
-    print(databaseDF.shape)
+    featuresDF: DataFrame = pandas.concat([titleIdDF, summariesDF, themesDF, genresDF, vintagesDF], axis=1)
+    featuresDF.set_index("animeid")
+    # print(featuresDF)
+    print(list(featuresDF))
+    print(featuresDF.shape)
 
-    databaseDF.to_csv("./out/processed/database.csv")
+    featuresDF.to_csv("./out/processed/features.csv")
 
     # pp = PrettyPrinter(indent=4)
     # pp.pprint(animeSummaryCounters)
